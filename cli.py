@@ -37,7 +37,7 @@ import binascii
 try:
     from xmlrpc.client import ServerProxy, Error
     import http.client as HttpClient
-except ImportError: # Python 2 fallback
+except ImportError:  # Python 2 fallback
     from xmlrpclib import ServerProxy, Error
     import httplib as HttpClient
 
@@ -147,6 +147,7 @@ def make_rpc_conn(user, passwd):
     return ServerProxy("https://%s:%s@provisioning.snom.com:8083/xmlrpc/" %
                     (user, passwd), verbose=False, allow_none=True,
                     context=ssl._create_unverified_context())
+
 
 def validate_mac(mac):
     # not a snom MAC
@@ -346,10 +347,16 @@ class RedirectionCli(cmd.Cmd):
     # add command
     def do_add(self, params):
         """Add phone in redirection service
-            'add <mac> <url>' add redirection to <url> for mac address <mac> (Eg. "add 000413XXXXXX http://server.example.com"
+            'add <mac> <url>' add redirection to <url> for mac address <mac> (Eg. "add 000413XXXXXX http://server.example.com")
+            in case the <url> param is missing the default url value will be used (see the 'defaults' command)
         """
-        args = params.split()
-        #args = map(replace_value, params.split())
+        args = list(map(replace_value, params.split()))
+        if len(args) == 1:
+            if len(defaults['url']) > 0:
+                args.append(defaults['url'])
+            else:
+                print("ERROR: Default url not defined, please define it using 'default url <url>'")
+                return
         if len(args) != 2:
             print("Wrong arguments. Use 'add mac_address target_url'")
             return
@@ -479,15 +486,22 @@ class RedirectionCli(cmd.Cmd):
                 store_defaults()
                 print("Defaults written...")
             else:
-                print("Wrong arguments. Use 'defaults [name] [value]' or 'defaults print'.")
+                var = args[0]
+                if var in defaults:
+                    defaults[var] = ''
+                    print("Removed value for %s" % var)
+                    store_defaults()
+                else:
+                    print("Default setting not found: %s" % var)
         elif len(args) == 2:
             var = args[0]
             val = args[1]
             if var in defaults:
                 defaults[var] = val
+                print("Changed default value %s to %s" % (var, val))
                 store_defaults()
             else:
-                print("No such default setting: %s" % var)
+                print("Default setting not found: %s" % var)
         else:
             print("Wrong arguments. Use 'defaults [name] [value]' or 'defaults print'.")
 
