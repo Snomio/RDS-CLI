@@ -5,6 +5,9 @@
 
 # Changelog:
 #
+# 10-11-2016: ver. 1.1.3
+#  - Python 3 support
+#
 # 06-10-2016: ver. 1.1.2
 #   - Add 7E Snom 710 range
 #
@@ -30,16 +33,23 @@ except ImportError:
     pass
 import getpass
 import binascii
-from xmlrpclib import ServerProxy, Error
-import httplib
+
+try:
+    from xmlrpc.client import ServerProxy, Error
+    import http.client as HttpClient
+except ImportError: # Python 2 fallback
+    from xmlrpclib import ServerProxy, Error
+    import httplib as HttpClient
+
 import os.path
 import sys
 import re
+import ssl
 
 __version__ = "1.1.2"
 
-rx_response_m9 = re.compile(r"\s*<file url=\"(.*)\"\s/*>", re.MULTILINE)
-rx_response = re.compile(r"^setting_server.?: (.*)", re.MULTILINE)
+rx_response_m9 = re.compile(b'\s*<file url="(.*)"\s/*>', re.MULTILINE)
+rx_response = re.compile(b'^setting_server.?: (.*)', re.MULTILINE)
 
 error_map = {
     "Error:malformed_mac": "Invalid MAC address",
@@ -133,6 +143,11 @@ local_vars = {}
 
 # Util
 
+def make_rpc_conn(user, passwd):
+    return ServerProxy("https://%s:%s@provisioning.snom.com:8083/xmlrpc/" %
+                    (user, passwd), verbose=False, allow_none=True,
+                    context=ssl._create_unverified_context())
+
 def validate_mac(mac):
     # not a snom MAC
     if not mac.startswith("000413"):
@@ -154,7 +169,7 @@ def get_type(mac):
     if mac[6:8] in type_map:
         return type_map[mac[6:8]]
     else:
-        print "Unknown device type (maybe not a snom MAC?)"
+        print("Unknown device type (maybe not a snom MAC?)")
         return None
 
 
@@ -166,22 +181,22 @@ def get_var(name):
     if name in local_vars:
         return local_vars[name]
     else:
-        print "unknown variable %s" % name
+        print("unknown variable %s" % name)
         return None
 
 
 def print_error(res):
     if len(res) == 2:
         if res[1] in error_map:
-            print error_map[res[1]]
+            print(error_map[res[1]])
         else:
-            print res[1]
+            print(res[1])
     else:
-        print res
+        print(res)
 
 
 def get_redirection_target(mac):
-    conn = httplib.HTTPConnection("provisioning.snom.com")
+    conn = HttpClient.HTTPConnection("provisioning.snom.com")
     model = get_type(mac)
     conn.request("GET", "/%s/%s.php?mac=%s" %
                  (model, model, mac))
@@ -195,15 +210,15 @@ def get_redirection_target(mac):
                 match = re.search(rx_response, response_full)
             if match:
                 url = match.group(1)
-                return url
+                return url.decode('utf-8')
             else:
-                print "ERROR: wrong response received"
+                print("ERROR: wrong response received")
                 return None
-        except Exception, e:
-            print "ERROR in response parsing: %s" % e
+        except Exception as e:
+            print("ERROR in response parsing: %s" % e)
             return None
     else:
-        print "ERROR fetching current setting server!"
+        print("ERROR fetching current setting server!")
         return None
 
 
@@ -242,12 +257,12 @@ def load_defaults():
 # Commands
 
 def validate_password(user, passwd):
-    s = ServerProxy("https://%s:%s@provisioning.snom.com:8083/xmlrpc/" %
-                    (user, passwd), verbose=False, allow_none=True)
+    s = make_rpc_conn(user, passwd)
+
     try:
         s.network.echo("ping")
-    except Error, err:
-        print "Error: %d %s" % (err.errcode, err.errmsg)
+    except Error as err:
+        print("Error: %d %s" % (err.errcode, err.errmsg))
         return False
 
     return True
@@ -277,22 +292,22 @@ class RedirectionCli(cmd.Cmd):
         self.doc_header = "Available commands (type help <command>):"
 
     def _print_result(self, result):
-        print "-" * 80
-        print "| MAC address  | URL%s|" % (" " * 59)
-        print "-" * 80
-        print "\n".join(["| %s | %s |" % (x.ljust(10), get_redirection_target(x).ljust(61)) for x in result])
-        print "-" * 80
+        print("-" * 80)
+        print("| MAC address  | URL%s|" % (" " * 59))
+        print("-" * 80)
+        print("\n".join(["| %s | %s |" % (x.ljust(10), get_redirection_target(x).ljust(61)) for x in result]))
+        print("-" * 80)
         return
 
     def _list_all(self):
         result = []
-        print "Loading information ...\n"
+        print("Loading information ...\n")
         for t in self.phone_types:
             result.extend(server.redirect.listPhones(t, None))
         if len(result) > 0:
             self._print_result(result)
         else:
-            print "No phones registered for this user."
+            print("No phones registered for this user.")
 
     def do_list(self, params):
         """List phones configured in redirection service
@@ -311,7 +326,7 @@ class RedirectionCli(cmd.Cmd):
                 self._print_result(result)
                 return
             else:
-                print "No phones of type %s registered for this user." % model
+                print("No phones of type %s registered for this user." % model)
                 return
 
         if len(args) == 2:
@@ -322,10 +337,10 @@ class RedirectionCli(cmd.Cmd):
                 self._print_result(result)
                 return
             else:
-                print "No phones of type %s are pointing to %s." % (model, url)
+                print("No phones of type %s are pointing to %s." % (model, url))
                 return
         else:
-            print "Wrong arguments. Use 'list phonetype [url]' or 'list all'"
+            print("Wrong arguments. Use 'list phonetype [url]' or 'list all'")
             return
 
     # add command
@@ -336,19 +351,19 @@ class RedirectionCli(cmd.Cmd):
         args = params.split()
         #args = map(replace_value, params.split())
         if len(args) != 2:
-            print "Wrong arguments. Use 'add mac_address target_url'"
+            print("Wrong arguments. Use 'add mac_address target_url'")
             return
         if not validate_mac(args[0]):
-            print "%s does not seem to be a valid snom MAC address." % args[0]
+            print("%s does not seem to be a valid snom MAC address." % args[0])
             return
-        print "Adding redirection for %s to %s." % (args[0], args[1])
+        print("Adding redirection for %s to %s." % (args[0], args[1]))
         result = server.redirect.checkPhone(args[0])
         if result[0]:
-            print "Phone already registered, use 'remove' or 'update' command"
+            print("Phone already registered, use 'remove' or 'update' command")
             return
         result = server.redirect.registerPhone(args[0], args[1])
         if result[0]:
-            print "Redirection to %s for %s with MAC address %s has been successfully registered." % (args[1], get_type(args[0]), args[0])
+            print("Redirection to %s for %s with MAC address %s has been successfully registered." % (args[1], get_type(args[0]), args[0]))
         else:
             print_error(result)
             return
@@ -360,16 +375,16 @@ class RedirectionCli(cmd.Cmd):
         """
         args = params.split()
         if len(args) != 2:
-            print "Wrong arguments. Use 'update mac_address target_url'"
+            print("Wrong arguments. Use 'update mac_address target_url'")
             return
         if not validate_mac(args[0]):
-            print "%s does not seem to be a valid snom MAC address." % args[0]
+            print("%s does not seem to be a valid snom MAC address." % args[0])
             return
-        print "Updating redirection for %s to %s." % (args[0], args[1])
+        print("Updating redirection for %s to %s." % (args[0], args[1]))
         server.redirect.deregisterPhone(args[0])
         result = server.redirect.registerPhone(args[0], args[1])
         if result[0]:
-            print "Redirection to %s for %s with MAC address %s has been successfully updated." % (args[1], get_type(args[0]), args[0])
+            print("Redirection to %s for %s with MAC address %s has been successfully updated." % (args[1], get_type(args[0]), args[0]))
         else:
             print_error(result)
             return
@@ -381,15 +396,15 @@ class RedirectionCli(cmd.Cmd):
         """
         args = params.split()
         if len(args) != 1:
-            print "Wrong arguments. Use 'remove mac_address'"
+            print("Wrong arguments. Use 'remove mac_address'")
             return
         if not validate_mac(args[0]):
-            print "%s does not seem to be a valid snom MAC address." % args[0]
+            print("%s does not seem to be a valid snom MAC address." % args[0])
             return
 
         result = server.redirect.deregisterPhone(args[0])
         if result[0]:
-            print "Successfully removed redirection for %s with MAC address %s." % (get_type(args[0]), args[0])
+            print("Successfully removed redirection for %s with MAC address %s." % (get_type(args[0]), args[0]))
         else:
             print_error(result)
             return
@@ -404,12 +419,12 @@ class RedirectionCli(cmd.Cmd):
             mac = args[0].upper()
             result = server.redirect.checkPhone(mac)
             if result[0]:
-                print "%s with MAC address %s is registered." % (get_type(mac), mac)
-                print "Current redirection target is: %s" % get_redirection_target(mac)
+                print("%s with MAC address %s is registered." % (get_type(mac), mac))
+                print("Current redirection target is: %s" % get_redirection_target(mac))
             else:
                 print_error(result)
         else:
-            print "Wrong arguments. Use 'check MAC_Address'"
+            print("Wrong arguments. Use 'check MAC_Address'")
 
     # set command
     def do_set(self, params):
@@ -421,7 +436,7 @@ class RedirectionCli(cmd.Cmd):
             set_var(args[0], args[1])
             return
         else:
-            print "Wrong arguments. Use 'set <var_name> <value>'"
+            print("Wrong arguments. Use 'set <var_name> <value>'")
             return
 
     # print command
@@ -433,20 +448,20 @@ class RedirectionCli(cmd.Cmd):
         args = params.split()
         if len(args) == 1:
             if args[0] == "all":
-                print "\nLocal variables:"
-                print "================"
+                print("\nLocal variables:")
+                print("================")
                 if len(local_vars) == 0:
-                    print "\nNo local variables defined. Use 'set var_name var_value' to define variables."
+                    print("\nNo local variables defined. Use 'set var_name var_value' to define variables.")
                 else:
-                    print "\n".join(["%s = %s" % (var, local_vars[var]) for var in local_vars])
-                print ""
+                    print("\n".join(["%s = %s" % (var, local_vars[var]) for var in local_vars]))
+                print("")
             else:
                 if args[0] in local_vars:
-                    print "%s = %s" % (args[0], local_vars[args[0]])
+                    print("%s = %s" % (args[0], local_vars[args[0]]))
                 else:
-                    print "Unknown variable %s" % args[0]
+                    print("Unknown variable %s" % args[0])
         else:
-            print "Wrong arguments. Use 'print var_name or print all"
+            print("Wrong arguments. Use 'print var_name or print all")
 
     def do_defaults(self, params):
         """Manage default settings
@@ -457,14 +472,14 @@ class RedirectionCli(cmd.Cmd):
         args = params.split()
         if len(args) == 1:
             if args[0] == "print":
-                print "\nCurrent default settings:"
-                print "-------------------------"
-                print "\n".join(["%s => %s" % (x.ljust(10), defaults[x]) for x in defaults])
+                print("\nCurrent default settings:")
+                print("-------------------------")
+                print("\n".join(["%s => %s" % (x.ljust(10), defaults[x]) for x in defaults]))
             elif args[0] == "store":
                 store_defaults()
-                print "Defaults written..."
+                print("Defaults written...")
             else:
-                print "Wrong arguments. Use 'defaults [name] [value]' or 'defaults print'."
+                print("Wrong arguments. Use 'defaults [name] [value]' or 'defaults print'.")
         elif len(args) == 2:
             var = args[0]
             val = args[1]
@@ -472,13 +487,13 @@ class RedirectionCli(cmd.Cmd):
                 defaults[var] = val
                 store_defaults()
             else:
-                print "No such default setting: %s" % var
+                print("No such default setting: %s" % var)
         else:
-            print "Wrong arguments. Use 'defaults [name] [value]' or 'defaults print'."
+            print("Wrong arguments. Use 'defaults [name] [value]' or 'defaults print'.")
 
     def do_history(self, args):
         """Print a list of commands that have been entered"""
-        print "\n".join(self._history)
+        print("\n".join(self._history))
 
     def do_exit(self, args):
         """Exits from the console"""
@@ -500,7 +515,7 @@ class RedirectionCli(cmd.Cmd):
 
     def do_version(self, args):
         """Print the sofware version"""
-        print "Version: %s" % __version__
+        print("Version: %s" % __version__)
 
     def emptyline(self):
         pass
@@ -508,7 +523,7 @@ class RedirectionCli(cmd.Cmd):
     def precmd(self, params):
         if params.strip() != "":
             self._history += [params.strip()]
-        replaced = map(replace_value, params.split())
+        replaced = list(map(replace_value, params.split()))
         return ' '.join(replaced)
 
     def get_names(self):
@@ -528,7 +543,7 @@ if __name__ == "__main__":
 #######################################"""
 
     if not defaults["username"]:
-        username = raw_input("Username: ")
+        username = input("Username: ")
     else:
         username = defaults["username"]
 
@@ -549,7 +564,7 @@ if __name__ == "__main__":
             password = None
             count = count + 1
             if count == 3:
-                print "Three wrong passwords provided. Exiting."
+                print("Three wrong passwords provided. Exiting.")
                 sys.exit(-1)
         else:
             break
@@ -559,8 +574,7 @@ if __name__ == "__main__":
 
     command = None
 
-    server = ServerProxy("https://%s:%s@provisioning.snom.com:8083/xmlrpc/" %
-                         (username, password), verbose=False, allow_none=True)
+    server = make_rpc_conn(username, password)
 
     try:
         if len(sys.argv) > 1:
@@ -568,5 +582,5 @@ if __name__ == "__main__":
         else:
             RedirectionCli().cmdloop()
     except KeyboardInterrupt:
-        print "\nGot keyboard interrupt. Exiting..."
+        print("\nGot keyboard interrupt. Exiting...")
         sys.exit(0)
