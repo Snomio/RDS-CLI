@@ -7,6 +7,7 @@
 #
 # 10-11-2016: ver. 1.1.3
 #  - Python 3 support
+#  - use of default url if url is not present into add
 #
 # 06-10-2016: ver. 1.1.2
 #   - Add 7E Snom 710 range
@@ -144,9 +145,12 @@ local_vars = {}
 # Util
 
 def make_rpc_conn(user, passwd):
-    return ServerProxy("https://%s:%s@provisioning.snom.com:8083/xmlrpc/" %
-                    (user, passwd), verbose=False, allow_none=True,
+    url = "https://%s:%s@provisioning.snom.com:8083/xmlrpc/" % (user, passwd)
+    if sys.version_info > (2, 7):
+        return ServerProxy(url, verbose=False, allow_none=True,
                     context=ssl._create_unverified_context())
+    else:  # Python 2.6 compatible:
+        return ServerProxy(url, verbose=False, allow_none=True)
 
 
 def validate_mac(mac):
