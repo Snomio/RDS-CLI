@@ -47,7 +47,7 @@ import sys
 import re
 import ssl
 
-__version__ = "1.1.2"
+__version__ = "1.1.3"
 
 rx_response_m9 = re.compile(b'\s*<file url="(.*)"\s/*>', re.MULTILINE)
 rx_response = re.compile(b'^setting_server.?: (.*)', re.MULTILINE)
