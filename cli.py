@@ -5,6 +5,9 @@
 
 # Changelog:
 #
+# 30-12-2016: ver. 1.1.4
+# - New mac range for the 715
+#
 # 10-11-2016: ver. 1.1.3
 #  - Python 3 support
 #  - use of default url if url is not present into add
@@ -47,7 +50,7 @@ import sys
 import re
 import ssl
 
-__version__ = "1.1.3"
+__version__ = "1.1.4"
 
 rx_response_m9 = re.compile(b'\s*<file url="(.*)"\s/*>', re.MULTILINE)
 rx_response = re.compile(b'^setting_server.?: (.*)', re.MULTILINE)
@@ -132,8 +135,8 @@ type_map = {
     "7F": "snom715",
     "79": "snomD745",
     "83": "snomD305",
-    "85": "snomD315",
     "85": "snomD345",
+    "87": "snom715",
     "90": "snomD765",
     "91": "snomD375"
 }
