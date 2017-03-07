@@ -4,6 +4,9 @@
 # -*- Mode: Python -*-
 
 # Changelog:
+# 
+# 07-03-2017: ver. 1.1.5
+# - FIX: input() Vs raw_input() backward compatible
 #
 # 30-12-2016: ver. 1.1.4
 # - New mac range for the 715
@@ -50,7 +53,7 @@ import sys
 import re
 import ssl
 
-__version__ = "1.1.4"
+__version__ = "1.1.5"
 
 # check raw_input (python2.6)
 try:
