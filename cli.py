@@ -52,6 +52,12 @@ import ssl
 
 __version__ = "1.1.4"
 
+# check raw_input (python2.6)
+try:
+    input = raw_input
+except NameError:
+    pass
+
 rx_response_m9 = re.compile(b'\s*<file url="(.*)"\s/*>', re.MULTILINE)
 rx_response = re.compile(b'^setting_server.?: (.*)', re.MULTILINE)
 
