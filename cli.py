@@ -56,7 +56,7 @@ import sys
 import re
 import ssl
 
-__version__ = "1.1.5"
+__version__ = "1.1.6"
 
 # check raw_input (python2.6)
 try:
