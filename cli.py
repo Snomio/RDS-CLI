@@ -4,6 +4,9 @@
 # -*- Mode: Python -*-
 
 # Changelog:
+#
+# 08-03-2017: ver. 1.1.6
+# - ADD: New mac ranges
 # 
 # 07-03-2017: ver. 1.1.5
 # - FIX: input() Vs raw_input() backward compatible
@@ -144,10 +147,19 @@ type_map = {
     "7F": "snom715",
     "79": "snomD745",
     "83": "snomD305",
+    "84": "snomD315",
     "85": "snomD345",
+    "86": "snomD725",
     "87": "snom715",
+    "88": "snomD712",
+    "89": "snomD710",
+    "8A": "snomD715",
+    "8B": "snomD725",
     "90": "snomD765",
-    "91": "snomD375"
+    "91": "snomD375",
+    "92": "snomD785",
+    "93": "snomD385",
+    "94": "snomD765"
 }
 
 server = None
