@@ -5,6 +5,13 @@
 
 # Changelog:
 #
+# 09-08-2017: ver. 1.1.8
+# - FIX: fix usage of | char in loading defaults
+#
+# 21-04-2017: ver. 1.1.7
+# - MOD: Updated copyright note
+# - ADD: Dockerfile
+#
 # 08-03-2017: ver. 1.1.6
 # - ADD: New mac ranges
 # 
@@ -56,7 +63,7 @@ import sys
 import re
 import ssl
 
-__version__ = "1.1.6"
+__version__ = "1.1.8"
 
 # check raw_input (python2.6)
 try:
@@ -275,7 +282,7 @@ def load_defaults():
             if line == "=====\n":
                 is_defaults = False
                 continue
-            (name, value) = line.split("|")
+            (name, value) = line.split("|", 1)
             if is_defaults == False:
                 local_vars[name] = value.strip()
             else:
@@ -580,9 +587,9 @@ class RedirectionCli(cmd.Cmd):
 if __name__ == "__main__":
     load_defaults()
     banner = """#######################################
-# Snom Redirection Server Console     #
-# (c) 2010-2016 snom technology AG    #
-#######################################"""
+  Snom Redirection Server Console Ver. %s
+  (c) 2010-2017 snom technology AG
+#######################################""" % __version__
 
     if not defaults["username"]:
         username = input("Username: ")
