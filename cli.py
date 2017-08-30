@@ -5,6 +5,9 @@
 
 # Changelog:
 #
+# 30-08-2017: ver. 1.1.9
+# - ADD: new mac ranges
+#
 # 09-08-2017: ver. 1.1.8
 # - FIX: fix usage of | char in loading defaults
 #
@@ -63,7 +66,7 @@ import sys
 import re
 import ssl
 
-__version__ = "1.1.8"
+__version__ = "1.1.9"
 
 # check raw_input (python2.6)
 try:
@@ -166,7 +169,9 @@ type_map = {
     "91": "snomD375",
     "92": "snomD785",
     "93": "snomD385",
-    "94": "snomD765"
+    "94": "snomD765",
+    "95": "snomD375",
+    "A1": "snomD345"
 }
 
 server = None
