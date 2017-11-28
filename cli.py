@@ -5,6 +5,11 @@
 
 # Changelog:
 #
+# 28-11-2017: ver. 1.1.10
+#
+# - FIX: typo in mac 8A
+# - MOD: added some more debug info in case of error
+#
 # 30-08-2017: ver. 1.1.9
 # - ADD: new mac ranges
 #
@@ -66,7 +71,7 @@ import sys
 import re
 import ssl
 
-__version__ = "1.1.9"
+__version__ = "1.1.10"
 
 # check raw_input (python2.6)
 try:
@@ -163,7 +168,7 @@ type_map = {
     "87": "snom715",
     "88": "snomD712",
     "89": "snomD710",
-    "8A": "snomD715",
+    "8A": "snom715",
     "8B": "snomD725",
     "90": "snomD765",
     "91": "snomD375",
@@ -239,6 +244,11 @@ def print_error(res):
 def get_redirection_target(mac):
     conn = HttpClient.HTTPConnection("provisioning.snom.com")
     model = get_type(mac)
+
+    if model == None:
+        print("ERROR: model for %s not found" % mac)
+        return None
+
     conn.request("GET", "/%s/%s.php?mac=%s" %
                  (model, model, mac))
     res = conn.getresponse()
@@ -259,9 +269,8 @@ def get_redirection_target(mac):
             print("ERROR in response parsing: %s" % e)
             return None
     else:
-        print("ERROR fetching current setting server!")
+        print("ERROR fetching current setting server! (mac: %s, model: %s)" % (mac, model))
         return None
-
 
 def store_defaults():
     homedir = os.path.expanduser('~')
