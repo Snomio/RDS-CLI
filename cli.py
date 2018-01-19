@@ -5,6 +5,10 @@
 
 # Changelog:
 #
+# 19-01-2017: ver. 1.1.11
+#
+# - FIX: typo in some snom710 and snom725 dev. name
+#
 # 28-11-2017: ver. 1.1.10
 #
 # - FIX: typo in mac 8A
@@ -164,12 +168,12 @@ type_map = {
     "83": "snomD305",
     "84": "snomD315",
     "85": "snomD345",
-    "86": "snomD725",
+    "86": "snom725",
     "87": "snom715",
     "88": "snomD712",
-    "89": "snomD710",
+    "89": "snom710",
     "8A": "snom715",
-    "8B": "snomD725",
+    "8B": "snom725",
     "90": "snomD765",
     "91": "snomD375",
     "92": "snomD785",
@@ -602,7 +606,7 @@ if __name__ == "__main__":
     load_defaults()
     banner = """#######################################
   Snom Redirection Server Console Ver. %s
-  (c) 2010-2017 snom technology AG
+  (c) 2010-2018 snom technology AG
 #######################################""" % __version__
 
     if not defaults["username"]:
