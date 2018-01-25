@@ -182,7 +182,7 @@ type_map = {
     "8D": "snomPA1",
     "8B": "snom725",
     "8E": "snomD305",
-    "8F": "snomD315"
+    "8F": "snomD315",
     "90": "snomD765",
     "91": "snomD375",
     "92": "snomD785",
