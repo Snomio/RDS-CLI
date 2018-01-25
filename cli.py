@@ -5,6 +5,10 @@
 
 # Changelog:
 #
+# 25-01-2018: ver. 1.2.00-alpha
+#
+# - ADD: support for SRAPS
+#
 # 19-01-2017: ver. 1.1.11
 #
 # - FIX: typo in some snom710 and snom725 dev. name
@@ -75,7 +79,7 @@ import sys
 import re
 import ssl
 
-__version__ = "1.1.11"
+__version__ = "1.2.00-alpha"
 
 # check raw_input (python2.6)
 try:
@@ -83,8 +87,6 @@ try:
 except NameError:
     pass
 
-rx_response_m9 = re.compile(b'\s*<file url="(.*)"\s/*>', re.MULTILINE)
-rx_response = re.compile(b'^setting_server.?: (.*)', re.MULTILINE)
 
 error_map = {
     "Error:malformed_mac": "Invalid MAC address",
@@ -107,7 +109,6 @@ type_map = {
     "27": "snom320",
     "28": "snom300",
     "29": "snom360",
-    "2A": "snomM3",
     "2B": "snom360",
     "2C": "snom320",
     "2D": "snom300",
@@ -131,7 +132,6 @@ type_map = {
     "3F": "snom320",
     "40": "snom820",
     "41": "snom870",
-    "43": "snom870E",
     "45": "snom821",
     "46": "snom821",
     "47": "snom870",
@@ -190,7 +190,7 @@ local_vars = {}
 # Util
 
 def make_rpc_conn(user, passwd):
-    url = "https://%s:%s@provisioning.snom.com:8083/xmlrpc/" % (user, passwd)
+    url = 'https://%s:%s@secure-provisioning.snom.com:8083/xmlrpc/' % (user, passwd)
     if sys.version_info > (2, 7):
         return ServerProxy(url, verbose=False, allow_none=True,
                     context=ssl._create_unverified_context())
@@ -244,37 +244,6 @@ def print_error(res):
     else:
         print(res)
 
-
-def get_redirection_target(mac):
-    conn = HttpClient.HTTPConnection("provisioning.snom.com")
-    model = get_type(mac)
-
-    if model == None:
-        print("ERROR: model for %s not found" % mac)
-        return None
-
-    conn.request("GET", "/%s/%s.php?mac=%s" %
-                 (model, model, mac))
-    res = conn.getresponse()
-    if res.status == 200:
-        try:
-            response_full = res.read()
-            if model == "snomm9":
-                match = re.search(rx_response_m9, response_full)
-            else:
-                match = re.search(rx_response, response_full)
-            if match:
-                url = match.group(1)
-                return url.decode('utf-8')
-            else:
-                print("ERROR: wrong response received")
-                return None
-        except Exception as e:
-            print("ERROR in response parsing: %s" % e)
-            return None
-    else:
-        print("ERROR fetching current setting server! (mac: %s, model: %s)" % (mac, model))
-        return None
 
 def store_defaults():
     homedir = os.path.expanduser('~')
@@ -345,19 +314,32 @@ class RedirectionCli(cmd.Cmd):
         self.intro = banner  # defaults to None
         self.doc_header = "Available commands (type help <command>):"
 
+    def _get_redirection_target(self, mac):
+        redirection = server.redirect.getPhoneRedirection(mac)
+        if redirection[0]:
+            company = redirection[1] or ''
+            target = redirection[2] or ''
+            return " %s | %s " % (company.ljust(32), target.ljust(80))
+        else:
+            print("Error in getting phone redirection (%s)" % mac)
+            return ''
+
     def _print_result(self, result):
-        print("-" * 80)
-        print("| MAC address  | URL%s|" % (" " * 59))
-        print("-" * 80)
-        print("\n".join(["| %s | %s |" % (x.ljust(10), get_redirection_target(x).ljust(61)) for x in result]))
-        print("-" * 80)
+        print("-" * 136)
+        print("| MAC  address |              Company              | URL%s|" % (" " * 79))
+        print("-" * 136)
+        for x in result:
+            target = self._get_redirection_target(x)
+            print("\n".join(["| %s | %s |" % (x.upper().ljust(10), target)]))
+        print("-" * 136)
         return
 
     def _list_all(self):
         result = []
         print("Loading information ...\n")
         for t in self.phone_types:
-            result.extend(server.redirect.listPhones(t, None))
+            r = server.redirect.listPhones(t, None)
+            result.extend(r)
         if len(result) > 0:
             self._print_result(result)
         else:
@@ -370,28 +352,30 @@ class RedirectionCli(cmd.Cmd):
             'list <phone_type> <url>' list only phone matching thist <phone_type> and <url> (Eg. "list snom370 http://server.example.com/" )
         """
         args = params.split()
-        if len(args) == 1:
+        if len(args) >= 1:
             # list all
             if args[0] == "all":
                 return self._list_all()
             model = args[0]
-            result = server.redirect.listPhones(model, None)
-            if len(result) > 0:
-                self._print_result(result)
+            if model not in type_map.values():
+                print("Error: model %s not found" % model)
                 return
+            if len(args) == 2:
+                url = args[1]
             else:
-                print("No phones of type %s registered for this user." % model)
-                return
-
-        if len(args) == 2:
-            model = args[0]
-            url = args[1]
+                url = None
             result = server.redirect.listPhones(model, url)
             if len(result) > 0:
+                if not result[0]:
+                    print("Error: %s" % result[1])
+                    return
                 self._print_result(result)
                 return
             else:
-                print("No phones of type %s are pointing to %s." % (model, url))
+                if len(args) == 2:
+                    print("No phones of type %s redirected to %s registered for this user." % (model, url))
+                else:
+                    print("No phones of type %s registered for this user." % model)
                 return
         else:
             print("Wrong arguments. Use 'list phonetype [url]' or 'list all'")
@@ -479,8 +463,14 @@ class RedirectionCli(cmd.Cmd):
             mac = args[0].upper()
             result = server.redirect.checkPhone(mac)
             if result[0]:
+                target = server.redirect.getPhoneRedirection(mac)
                 print("%s with MAC address %s is registered." % (get_type(mac), mac))
-                print("Current redirection target is: %s" % get_redirection_target(mac))
+                if target[1] != '':
+                    print("\tMac is owned by %s" % target[1])
+                if target[2] != '':
+                    print("\tCurrent redirection target is: %s" % target[2])
+                else:
+                    print("\tThe mac is not redirected")
             else:
                 print_error(result)
         else:
@@ -604,10 +594,10 @@ class RedirectionCli(cmd.Cmd):
 # Main application loop
 if __name__ == "__main__":
     load_defaults()
-    banner = """#######################################
+    banner = """###############################################
   Snom Redirection Server Console Ver. %s
   (c) 2010-2018 snom technology AG
-#######################################""" % __version__
+###############################################""" % __version__
 
     if not defaults["username"]:
         username = input("Username: ")
