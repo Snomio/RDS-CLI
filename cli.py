@@ -5,6 +5,10 @@
 
 # Changelog:
 #
+# 25-01-2018: ver. 1.1.12
+#
+# - ADD: new mac ranges
+#
 # 19-01-2017: ver. 1.1.11
 #
 # - FIX: typo in some snom710 and snom725 dev. name
@@ -75,7 +79,7 @@ import sys
 import re
 import ssl
 
-__version__ = "1.1.11"
+__version__ = "1.1.12"
 
 # check raw_input (python2.6)
 try:
@@ -174,6 +178,9 @@ type_map = {
     "89": "snom710",
     "8A": "snom715",
     "8B": "snom725",
+    "8D": "snomPA1",
+    "8E": "snomD305",
+    "8F": "snomD315",
     "90": "snomD765",
     "91": "snomD375",
     "92": "snomD785",
