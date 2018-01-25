@@ -5,6 +5,10 @@
 
 # Changelog:
 #
+# 25-01-2018: ver. 1.2.01-alpha
+#
+# - ADD: new mac ranges
+#
 # 25-01-2018: ver. 1.2.00-alpha
 #
 # - ADD: support for SRAPS
@@ -79,7 +83,7 @@ import sys
 import re
 import ssl
 
-__version__ = "1.2.00-alpha"
+__version__ = "1.2.01-alpha"
 
 # check raw_input (python2.6)
 try:
@@ -151,6 +155,7 @@ type_map = {
     "56": "snomm9",
     "61": "snomM700",
     "62": "snomM300",
+    "64": "snomM200SC",
     "70": "snom720",
     "71": "snom760",
     "74": "snom710",
@@ -165,6 +170,7 @@ type_map = {
     "7E": "snom710",
     "7F": "snom715",
     "79": "snomD745",
+    "82": "snomD120",
     "83": "snomD305",
     "84": "snomD315",
     "85": "snomD345",
@@ -173,13 +179,17 @@ type_map = {
     "88": "snomD712",
     "89": "snom710",
     "8A": "snom715",
+    "8D": "snomPA1",
     "8B": "snom725",
+    "8E": "snomD305",
+    "8F": "snomD315"
     "90": "snomD765",
     "91": "snomD375",
     "92": "snomD785",
     "93": "snomD385",
     "94": "snomD765",
     "95": "snomD375",
+    "A0": "snomC520",
     "A1": "snomD345"
 }
 
