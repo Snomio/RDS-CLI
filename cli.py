@@ -5,6 +5,11 @@
 
 # Changelog:
 #
+# 06-03-2018: ver. 1.2.02-alpha
+#
+# - REM: removed snom820
+# - FIX: fixed error handling in getting redirection
+#
 # 25-01-2018: ver. 1.2.01-alpha
 #
 # - ADD: new mac ranges
@@ -83,7 +88,7 @@ import sys
 import re
 import ssl
 
-__version__ = "1.2.01-alpha"
+__version__ = "1.2.02-alpha"
 
 # check raw_input (python2.6)
 try:
