@@ -134,7 +134,6 @@ type_map = {
     "3D": "snom300",
     "3E": "snom300",
     "3F": "snom320",
-    "40": "snom820",
     "41": "snom870",
     "45": "snom821",
     "46": "snom821",
@@ -326,7 +325,7 @@ class RedirectionCli(cmd.Cmd):
 
     def _get_redirection_target(self, mac):
         redirection = server.redirect.getPhoneRedirection(mac)
-        if redirection[0]:
+        if redirection[0] == True:
             company = redirection[1] or ''
             target = redirection[2] or ''
             return " %s | %s " % (company.ljust(32), target.ljust(80))
