@@ -5,6 +5,11 @@
 
 # Changelog:
 #
+# 09-03-2018: ver. 1.2.03-alpha
+#
+# - REM: removed snom360
+# - FIX: improved robustness in error handling the check command
+#
 # 06-03-2018: ver. 1.2.02-alpha
 #
 # - REM: removed snom820
@@ -88,7 +93,7 @@ import sys
 import re
 import ssl
 
-__version__ = "1.2.02-alpha"
+__version__ = "1.2.03-alpha"
 
 # check raw_input (python2.6)
 try:
@@ -111,14 +116,11 @@ defaults = {
 }
 
 type_map = {
-    "23": "snom360",
     "24": "snom320",
     "25": "snom300",
     "26": "snom370",
     "27": "snom320",
     "28": "snom300",
-    "29": "snom360",
-    "2B": "snom360",
     "2C": "snom320",
     "2D": "snom300",
     "2E": "snom370",
@@ -132,7 +134,6 @@ type_map = {
     "36": "snom300",
     "37": "snom300",
     "38": "snom320",
-    "39": "snom360",
     "3A": "snom370",
     "3B": "snom300",
     "3C": "snom370",
@@ -479,12 +480,15 @@ class RedirectionCli(cmd.Cmd):
             if result[0]:
                 target = server.redirect.getPhoneRedirection(mac)
                 print("%s with MAC address %s is registered." % (get_type(mac), mac))
-                if target[1] != '':
-                    print("\tMac is owned by %s" % target[1])
-                if target[2] != '':
-                    print("\tCurrent redirection target is: %s" % target[2])
+                if target[0] == True:
+                    if target[1] != '':
+                        print("\tMac is owned by %s" % target[1])
+                    if target[2] != '':
+                        print("\tCurrent redirection target is: %s" % target[2])
+                    else:
+                        print("\tThe mac is not redirected")
                 else:
-                    print("\tThe mac is not redirected")
+                    print("\tError getting the redirection target: %s" % target[1])
             else:
                 print_error(result)
         else:
