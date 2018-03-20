@@ -5,6 +5,11 @@
 
 # Changelog:
 #
+# 20-03-2018: ver. 1.2.04-alpha
+#
+# - FIX: usage of colon in credentials
+# - ADD: support for SNOM_DEBUG environment variable
+#
 # 09-03-2018: ver. 1.2.03-alpha
 #
 # - REM: removed snom360
@@ -82,18 +87,19 @@ import getpass
 import binascii
 
 try:
-    from xmlrpc.client import ServerProxy, Error
+    from xmlrpc.client import SafeTransport, ServerProxy, Error
     import http.client as HttpClient
 except ImportError:  # Python 2 fallback
-    from xmlrpclib import ServerProxy, Error
+    from xmlrpclib import SafeTransport, ServerProxy, Error
     import httplib as HttpClient
 
 import os.path
 import sys
 import re
 import ssl
+from base64 import b64encode
 
-__version__ = "1.2.03-alpha"
+__version__ = "1.2.04-alpha"
 
 # check raw_input (python2.6)
 try:
@@ -202,15 +208,34 @@ server = None
 
 local_vars = {}
 
+class HTTPSSafeAuth(SafeTransport):
+    def __init__(self, user, password, *l, **kw):
+        SafeTransport.__init__(self, *l, **kw)
+        self.user = user
+        self.password = password
+
+    def send_content(self, connection, request_body):
+        if sys.version_info > (3, 0):
+            auth = b64encode(bytes(self.user + ':' + self.password, "utf-8")).decode("ascii")
+        else:
+            auth = b64encode(self.user + ':' + self.password)
+        connection.putheader('Content-Type', 'text/xml')
+        connection.putheader('Authorization', 'Basic %s' % auth)
+        connection.putheader("Content-Length", str(len(request_body)))
+        connection.endheaders()
+        if request_body:
+            connection.send(request_body)
+
 # Util
 
-def make_rpc_conn(user, passwd):
-    url = 'https://%s:%s@secure-provisioning.snom.com:8083/xmlrpc/' % (user, passwd)
+def make_rpc_conn(user, passwd, debug=False):
+    url = 'https://secure-provisioning.snom.com:8083/xmlrpc/'
     if sys.version_info > (2, 7):
-        return ServerProxy(url, verbose=False, allow_none=True,
-                    context=ssl._create_unverified_context())
+        transport = HTTPSSafeAuth(user, passwd, context=ssl._create_unverified_context())
+        return ServerProxy(url, transport=transport, verbose=debug, allow_none=True)
     else:  # Python 2.6 compatible:
-        return ServerProxy(url, verbose=False, allow_none=True)
+        transport = HTTPSSafeAuth(user, passwd)
+        return ServerProxy(url, transport=transport, verbose=debug, allow_none=True)
 
 
 def validate_mac(mac):
@@ -649,7 +674,11 @@ if __name__ == "__main__":
 
     command = None
 
-    server = make_rpc_conn(username, password)
+    if "SNOM_DEBUG" in os.environ:
+        debug = True
+    else:
+        debug = False
+    server = make_rpc_conn(username, password, debug=debug)
 
     try:
         if len(sys.argv) > 1:
