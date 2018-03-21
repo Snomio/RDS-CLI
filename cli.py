@@ -83,7 +83,7 @@ import sys
 import re
 import ssl
 
-__version__ = "1.1.12"
+__version__ = "1.1.13"
 
 # check raw_input (python2.6)
 try:
