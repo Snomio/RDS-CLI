@@ -5,6 +5,10 @@
 
 # Changelog:
 #
+# 21-03-2018: ver. 1.1.13
+#
+# - FIX: allow MACs without redirection
+#
 # 25-01-2018: ver. 1.1.12
 #
 # - ADD: new mac ranges
@@ -274,14 +278,14 @@ def get_redirection_target(mac):
                 url = match.group(1)
                 return url.decode('utf-8')
             else:
-                print("ERROR: wrong response received")
-                return None
+                return ""
         except Exception as e:
             print("ERROR in response parsing: %s" % e)
-            return None
+            print("ERROR: wrong response received: %d - %s" % (res.status, response_full))
+            return ""
     else:
         print("ERROR fetching current setting server! (mac: %s, model: %s)" % (mac, model))
-        return None
+        return ""
 
 def store_defaults():
     homedir = os.path.expanduser('~')
