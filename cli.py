@@ -228,7 +228,11 @@ class HTTPSSafeAuth(SafeTransport):
 
 # Util
 
-def make_rpc_conn(user, passwd, debug=False):
+def make_rpc_conn(user, passwd):
+    if "SNOM_DEBUG" in os.environ:
+        debug = True
+    else:
+        debug = False
     url = 'https://secure-provisioning.snom.com:8083/xmlrpc/'
     if sys.version_info > (2, 7):
         transport = HTTPSSafeAuth(user, passwd, context=ssl._create_unverified_context())
@@ -674,11 +678,7 @@ if __name__ == "__main__":
 
     command = None
 
-    if "SNOM_DEBUG" in os.environ:
-        debug = True
-    else:
-        debug = False
-    server = make_rpc_conn(username, password, debug=debug)
+    server = make_rpc_conn(username, password)
 
     try:
         if len(sys.argv) > 1:
