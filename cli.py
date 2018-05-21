@@ -5,6 +5,10 @@
 
 # Changelog:
 #
+# 21-05-2018: ver. 1.2.05-alpha
+#
+# - ADD: A3, A4, A5 mac ranges 
+#
 # 20-03-2018: ver. 1.2.04-alpha
 #
 # - FIX: usage of colon in credentials
@@ -99,7 +103,7 @@ import re
 import ssl
 from base64 import b64encode
 
-__version__ = "1.2.04-alpha"
+__version__ = "1.2.05-alpha"
 
 # check raw_input (python2.6)
 try:
@@ -201,7 +205,10 @@ type_map = {
     "94": "snomD765",
     "95": "snomD375",
     "A0": "snomC520",
-    "A1": "snomD345"
+    "A1": "snomD345",
+    "A3": "snomD375",
+    "A4": "snomD335",
+    "A5": "snom715"
 }
 
 server = None
