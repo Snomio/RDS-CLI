@@ -5,6 +5,10 @@
 
 # Changelog:
 #
+# 21-05-2018: ver. 1.1.14
+#
+# - ADD: A3, A5 mac ranges
+#
 # 21-03-2018: ver. 1.1.13
 #
 # - FIX: allow MACs without redirection
@@ -83,7 +87,7 @@ import sys
 import re
 import ssl
 
-__version__ = "1.1.13"
+__version__ = "1.1.14"
 
 # check raw_input (python2.6)
 try:
@@ -191,7 +195,9 @@ type_map = {
     "93": "snomD385",
     "94": "snomD765",
     "95": "snomD375",
-    "A1": "snomD345"
+    "A1": "snomD345",
+    "A3": "snomD375",
+    "A5": "snom715"
 }
 
 server = None
