@@ -5,6 +5,10 @@
 
 # Changelog:
 #
+# 06-07-2018: ver. 1.2.06-alpha
+#
+# - MOD: fix in A3 range
+#
 # 21-05-2018: ver. 1.2.05-alpha
 #
 # - ADD: A3, A4, A5 mac ranges 
@@ -103,7 +107,7 @@ import re
 import ssl
 from base64 import b64encode
 
-__version__ = "1.2.05-alpha"
+__version__ = "1.2.06-alpha"
 
 # check raw_input (python2.6)
 try:
@@ -206,7 +210,7 @@ type_map = {
     "95": "snomD375",
     "A0": "snomC520",
     "A1": "snomD345",
-    "A3": "snomD375",
+    "A3": "snomD735",
     "A4": "snomD335",
     "A5": "snom715"
 }
