@@ -4,6 +4,10 @@
 # -*- Mode: Python -*-
 
 # Changelog:
+# 30-08-2018: ver. 1.3.0
+#
+# - First version after migration to SRAPS
+# - MOD: added A6 and A8 mac ranges
 #
 # 06-07-2018: ver. 1.2.06-alpha
 #
@@ -107,7 +111,7 @@ import re
 import ssl
 from base64 import b64encode
 
-__version__ = "1.2.06-alpha"
+__version__ = "1.3.0"
 
 # check raw_input (python2.6)
 try:
@@ -212,7 +216,9 @@ type_map = {
     "A1": "snomD345",
     "A3": "snomD735",
     "A4": "snomD335",
-    "A5": "snom715"
+    "A5": "snom715",
+    "A6": "snomD717",
+    "A8": "snomD712"
 }
 
 server = None
