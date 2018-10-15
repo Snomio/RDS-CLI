@@ -4,6 +4,11 @@
 # -*- Mode: Python -*-
 
 # Changelog:
+#
+# 15-10-2018: ver. 1.3.1
+# 
+# - ADD: added the 8C mac range
+#
 # 30-08-2018: ver. 1.3.0
 #
 # - First version after migration to SRAPS
@@ -203,6 +208,7 @@ type_map = {
     "89": "snom710",
     "8A": "snom715",
     "8D": "snomPA1",
+    "8C": "snomD745",
     "8B": "snom725",
     "8E": "snomD305",
     "8F": "snomD315",
