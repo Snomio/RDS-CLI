@@ -183,7 +183,6 @@ macRegexList = [
 ]
 
 models = list(set([ x[1] for x in macRegexList ]))
-print(models)
 
 server = None
 
