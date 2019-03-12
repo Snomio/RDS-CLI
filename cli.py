@@ -5,6 +5,12 @@
 
 # Changelog:
 #
+# 12-03-2019: ver. 1.4.0
+#
+# - MOD: moved to regex match mac address range
+# - ADD: range from 00041394B421 to 00041394BF03
+# - ADD: added the type command
+#
 # 15-10-2018: ver. 1.3.1
 # 
 # - ADD: added the 8C mac range
@@ -116,7 +122,7 @@ import re
 import ssl
 from base64 import b64encode
 
-__version__ = "1.3.0"
+__version__ = "1.4.0"
 
 # check raw_input (python2.6)
 try:
@@ -138,94 +144,46 @@ defaults = {
     "savelocals": 0,
 }
 
-type_map = {
-    "24": "snom320",
-    "25": "snom300",
-    "26": "snom370",
-    "27": "snom320",
-    "28": "snom300",
-    "2C": "snom320",
-    "2D": "snom300",
-    "2E": "snom370",
-    "2F": "snom300",
-    "30": "snomm9",
-    "31": "snom320",
-    "32": "snomMP",
-    "33": "snomPA1",
-    "34": "snom300",
-    "35": "snom320",
-    "36": "snom300",
-    "37": "snom300",
-    "38": "snom320",
-    "3A": "snom370",
-    "3B": "snom300",
-    "3C": "snom370",
-    "3D": "snom300",
-    "3E": "snom300",
-    "3F": "snom320",
-    "41": "snom870",
-    "45": "snom821",
-    "46": "snom821",
-    "47": "snom870",
-    "48": "snom821",
-    "49": "snom300",
-    "4A": "snom300",
-    "4B": "snom821",
-    "4C": "snom300",
-    "4E": "snom300",
-    "4D": "snom320",
-    "50": "snom300",
-    "51": "snom320",
-    "52": "snom370",
-    "53": "snom821",
-    "54": "snom870",
-    "55": "snomMP",
-    "56": "snomm9",
-    "61": "snomM700",
-    "62": "snomM300",
-    "64": "snomM200SC",
-    "70": "snom720",
-    "71": "snom760",
-    "74": "snom710",
-    "75": "snom715",
-    "76": "snom710",
-    "77": "snom720",
-    "78": "snom725",
-    "7A": "snom710",
-    "7B": "snom760",
-    "7C": "snom710",
-    "7D": "snom720",
-    "7E": "snom710",
-    "7F": "snom715",
-    "79": "snomD745",
-    "82": "snomD120",
-    "83": "snomD305",
-    "84": "snomD315",
-    "85": "snomD345",
-    "86": "snom725",
-    "87": "snom715",
-    "88": "snomD712",
-    "89": "snom710",
-    "8A": "snom715",
-    "8D": "snomPA1",
-    "8C": "snomD745",
-    "8B": "snom725",
-    "8E": "snomD305",
-    "8F": "snomD315",
-    "90": "snomD765",
-    "91": "snomD375",
-    "92": "snomD785",
-    "93": "snomD385",
-    "94": "snomD765",
-    "95": "snomD375",
-    "A0": "snomC520",
-    "A1": "snomD345",
-    "A3": "snomD735",
-    "A4": "snomD335",
-    "A5": "snom715",
-    "A6": "snomD717",
-    "A8": "snomD712"
-}
+macPattern = re.compile("^(000413[0-9A-F]{6})|(00087[bB][0-9A-F]{6})$")
+
+macRegexList = [
+        (re.compile('000413(25|28|2D|2F|34|36|37|3B|3D|3E|49|4A|4C|50|4E)[0-9A-F]{4}'), 'snom300'),
+        (re.compile('000413(24|27|2C|31|35|38|3F|4D|51)[0-9A-F]{4}'), 'snom320'),
+        (re.compile('000413(26|2E|3A|3C|52)[0-9A-F]{4}'), 'snom370'),
+        (re.compile('000413(30|56)[0-9A-F]{4}'), 'snomm9'),
+        (re.compile('000413(32|55)[0-9A-F]{4}'), 'snomMP'),
+        (re.compile('00041361[0-9A-F]{4}|00087B(08|09|0B)[0-9A-F]{4}'), 'snomM700'),
+        (re.compile('00041362[0-9A-F]{4}|00087BD7[0-9A-F]{4}'), 'snomM300'),
+        (re.compile('000413(33|8D)[0-9A-F]{4}'), 'snomPA1'),
+        (re.compile('00041340[0-9A-F]{4}'), 'snom820'),
+        (re.compile('000413(45|46|48|4B|53)[0-9A-F]{4}'), 'snom821'),
+        (re.compile('000413(41|47|54)[0-9A-F]{4}'), 'snom870'),
+        (re.compile('000413(70|77|7D)[0-9A-F]{4}'), 'snom720'),
+        (re.compile('000413(78|86|8B)[0-9A-F]{4}'), 'snom725'),
+        (re.compile('000413(71|7B)[0-9A-F]{4}'), 'snom760'),
+        (re.compile('00041394B4[0-1]{1}[0-9A-F]{1}|00041394B420'), 'snomD765'), # this must preceed the next rule: from 00041394B400 to 00041394B420 are D765
+        (re.compile('00041394B[4-9A-E]{1}[0-9A-F]{1}|00041394BF0[0-3]'), 'snom715'), # 00041394B421 to 00041394BF03 are 715
+        (re.compile('000413790[0-9A-F]{3}|000413(90|94)[0-9A-F]{4}'), 'snomD765'), # In the 00041379xxxx range only 000413790000 to 000413790FFF is used for snomD765
+        (re.compile('000413(79|8C)[0-9A-F]{4}'), 'snomD745'), # This test must follow the test for snomD765, as 000413790xxx is D765, 000413791000 to 00041379FFFF is snomD745
+        (re.compile('000413(74|76|7A|7C|7E|89)[0-9A-F]{4}'), 'snom710'),
+        (re.compile('000413(75|7F|87|8A|A5)[0-9A-F]{4}'), 'snom715'),
+        (re.compile('000413(88|A8)[0-9A-F]{4}'), 'snomD712'),
+        (re.compile('000413(91|95)[0-9A-F]{4}'), 'snomD375'),
+        (re.compile('000413(83|8E)[0-9A-F]{4}'), 'snomD305'),
+        (re.compile('00041384001[A-F6-9]|0004138400[2-6][0-9A-F]|0004138400[2-7][0-9]'), 'snomD305'), #the MACs of the range '000413840016' to '000413840079' are D305 devices, rest is D315
+        (re.compile('00041384[0-9A-F]{4}|0004138F[0-9A-F]{4}'), 'snomD315'), # this must follow the D305 regex
+        (re.compile('00041385[0-9A-F]{4}|000413A1[0-9A-F]{4}'), 'snomD345'),
+        (re.compile('000413A6[0-9A-F]{4}'), 'snomD717'),
+        (re.compile('00041382[0-9A-F]{4}'), 'snomD120'),
+        (re.compile('000413A3[0-9A-F]{4}'), 'snomD735'),
+        (re.compile('000413A4[0-9A-F]{4}'), 'snomD335'),
+        (re.compile('00041364[0-9A-F]{4}'), 'snomM200SC'),
+        (re.compile('00041392[0-9A-F]{4}'), 'snomD785'),
+        (re.compile('00041393[0-9A-F]{4}'), 'snomD385')
+]
+
+models = list(set([ x[1] for x in macRegexList ]))
+print(models)
 
 server = None
 
@@ -283,11 +241,18 @@ def validate_mac(mac):
 
 
 def get_type(mac):
-    if mac[6:8] in type_map:
-        return type_map[mac[6:8]]
-    else:
-        print("Unknown device type (maybe not a snom MAC?)")
-        return None
+    """ The function converts the given 'mac' address into the appropriate phone type respectively. """
+    if mac and len(mac) == 12:
+        mac = mac.upper()
+        match = macPattern.match(mac)
+        if not match:
+            print("Unknown device type (maybe not a snom MAC?): %s" % mac)
+            return None
+        for regex, phone in macRegexList:
+            if regex.match(mac):
+                return phone
+    print("Unknown device type (maybe not a snom MAC?): %s" % mac)
+    return None
 
 
 def set_var(name, value):
@@ -372,7 +337,6 @@ def replace_value(var):
 
 class RedirectionCli(cmd.Cmd):
     """Command processor"""
-    phone_types = sorted(set(type_map.values()))
 
     def __init__(self):
         cmd.Cmd.__init__(self)
@@ -404,7 +368,7 @@ class RedirectionCli(cmd.Cmd):
     def _list_all(self):
         result = []
         print("Loading information ...\n")
-        for t in self.phone_types:
+        for t in models:
             r = server.redirect.listPhones(t, None)
             result.extend(r)
         if len(result) > 0:
@@ -424,7 +388,7 @@ class RedirectionCli(cmd.Cmd):
             if args[0] == "all":
                 return self._list_all()
             model = args[0]
-            if model not in type_map.values():
+            if model not in models:
                 print("Error: model %s not found" % model)
                 return
             if len(args) == 2:
@@ -545,6 +509,14 @@ class RedirectionCli(cmd.Cmd):
                 print_error(result)
         else:
             print("Wrong arguments. Use 'check MAC_Address'")
+    # type command
+    def do_type(self, params):
+        """Get the devie type of a given mac address
+            'type <mac>' returns the device type of the mac address <mac>
+        """
+        args = params.split()
+        for mac in args:
+            print("%s: %s" % (mac, get_type(mac)))
 
     # set command
     def do_set(self, params):
