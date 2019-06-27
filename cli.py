@@ -4,6 +4,10 @@
 # -*- Mode: Python -*-
 
 # Changelog:
+# 27-06-2919: ver. 1.4.1
+#
+# - ADD: range 000413B6 for M900
+# - ADD: range 000413B2 for 715
 #
 # 12-03-2019: ver. 1.4.0
 #
@@ -122,7 +126,7 @@ import re
 import ssl
 from base64 import b64encode
 
-__version__ = "1.4.0"
+__version__ = "1.4.1"
 
 # check raw_input (python2.6)
 try:
@@ -154,6 +158,7 @@ macRegexList = [
         (re.compile('000413(32|55)[0-9A-F]{4}'), 'snomMP'),
         (re.compile('00041361[0-9A-F]{4}|00087B(08|09|0B)[0-9A-F]{4}'), 'snomM700'),
         (re.compile('00041362[0-9A-F]{4}|00087BD7[0-9A-F]{4}'), 'snomM300'),
+        (re.compile('000413B6[0-9A-F]{4}'), 'snomM900'),
         (re.compile('000413(33|8D)[0-9A-F]{4}'), 'snomPA1'),
         (re.compile('00041340[0-9A-F]{4}'), 'snom820'),
         (re.compile('000413(45|46|48|4B|53)[0-9A-F]{4}'), 'snom821'),
@@ -166,7 +171,7 @@ macRegexList = [
         (re.compile('000413790[0-9A-F]{3}|000413(90|94)[0-9A-F]{4}'), 'snomD765'), # In the 00041379xxxx range only 000413790000 to 000413790FFF is used for snomD765
         (re.compile('000413(79|8C)[0-9A-F]{4}'), 'snomD745'), # This test must follow the test for snomD765, as 000413790xxx is D765, 000413791000 to 00041379FFFF is snomD745
         (re.compile('000413(74|76|7A|7C|7E|89)[0-9A-F]{4}'), 'snom710'),
-        (re.compile('000413(75|7F|87|8A|A5)[0-9A-F]{4}'), 'snom715'),
+        (re.compile('000413(75|7F|87|8A|A5|B2)[0-9A-F]{4}'), 'snom715'),
         (re.compile('000413(88|A8)[0-9A-F]{4}'), 'snomD712'),
         (re.compile('000413(91|95)[0-9A-F]{4}'), 'snomD375'),
         (re.compile('000413(83|8E)[0-9A-F]{4}'), 'snomD305'),
