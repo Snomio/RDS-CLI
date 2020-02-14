@@ -3,102 +3,6 @@
 # -*- coding: UTF-8 -*-
 # -*- Mode: Python -*-
 
-# Changelog:
-# 27-06-2919: ver. 1.4.1
-#
-# - ADD: range 000413B6 for M900
-# - ADD: range 000413B2 for 715
-#
-# 12-03-2019: ver. 1.4.0
-#
-# - MOD: moved to regex match mac address range
-# - ADD: range from 00041394B421 to 00041394BF03
-# - ADD: added the type command
-#
-# 15-10-2018: ver. 1.3.1
-# 
-# - ADD: added the 8C mac range
-#
-# 30-08-2018: ver. 1.3.0
-#
-# - First version after migration to SRAPS
-# - MOD: added A6 and A8 mac ranges
-#
-# 06-07-2018: ver. 1.2.06-alpha
-#
-# - MOD: fix in A3 range
-#
-# 21-05-2018: ver. 1.2.05-alpha
-#
-# - ADD: A3, A4, A5 mac ranges 
-#
-# 20-03-2018: ver. 1.2.04-alpha
-#
-# - FIX: usage of colon in credentials
-# - ADD: support for SNOM_DEBUG environment variable
-#
-# 09-03-2018: ver. 1.2.03-alpha
-#
-# - REM: removed snom360
-# - FIX: improved robustness in error handling the check command
-#
-# 06-03-2018: ver. 1.2.02-alpha
-#
-# - REM: removed snom820
-# - FIX: fixed error handling in getting redirection
-#
-# 25-01-2018: ver. 1.2.01-alpha
-#
-# - ADD: new mac ranges
-#
-# 25-01-2018: ver. 1.2.00-alpha
-#
-# - ADD: support for SRAPS
-#
-# 19-01-2017: ver. 1.1.11
-#
-# - FIX: typo in some snom710 and snom725 dev. name
-#
-# 28-11-2017: ver. 1.1.10
-#
-# - FIX: typo in mac 8A
-# - MOD: added some more debug info in case of error
-#
-# 30-08-2017: ver. 1.1.9
-# - ADD: new mac ranges
-#
-# 09-08-2017: ver. 1.1.8
-# - FIX: fix usage of | char in loading defaults
-#
-# 21-04-2017: ver. 1.1.7
-# - MOD: Updated copyright note
-# - ADD: Dockerfile
-#
-# 08-03-2017: ver. 1.1.6
-# - ADD: New mac ranges
-# 
-# 07-03-2017: ver. 1.1.5
-# - FIX: input() Vs raw_input() backward compatible
-#
-# 30-12-2016: ver. 1.1.4
-# - New mac range for the 715
-#
-# 10-11-2016: ver. 1.1.3
-#  - Python 3 support
-#  - use of default url if url is not present into add
-#
-# 06-10-2016: ver. 1.1.2
-#   - Add 7E Snom 710 range
-#
-# 04-08-2016: ver. 1.1.1
-#   - Fixed m9 response parsing
-#
-# 15-03-2016: ver. 1.1.0
-#   - Added Versioning: version command and first number
-#   - Updated Copyright notice
-#   - Extract setting_server from the response via regex
-#   - PEP8 compliance
-
 import cmd
 import rlcompleter
 try:
@@ -126,7 +30,7 @@ import re
 import ssl
 from base64 import b64encode
 
-__version__ = "1.4.1"
+__version__ = "1.4.2"
 
 # check raw_input (python2.6)
 try:
@@ -157,14 +61,14 @@ macRegexList = [
         (re.compile('000413(30|56)[0-9A-F]{4}'), 'snomm9'),
         (re.compile('000413(32|55)[0-9A-F]{4}'), 'snomMP'),
         (re.compile('00041361[0-9A-F]{4}|00087B(08|09|0B)[0-9A-F]{4}'), 'snomM700'),
-        (re.compile('00041362[0-9A-F]{4}|00087BD7[0-9A-F]{4}'), 'snomM300'),
+        (re.compile('000413(62|B8)[0-9A-F]{4}|00087BD7[0-9A-F]{4}'), 'snomM300'),
         (re.compile('000413B6[0-9A-F]{4}'), 'snomM900'),
         (re.compile('000413(33|8D)[0-9A-F]{4}'), 'snomPA1'),
         (re.compile('00041340[0-9A-F]{4}'), 'snom820'),
         (re.compile('000413(45|46|48|4B|53)[0-9A-F]{4}'), 'snom821'),
         (re.compile('000413(41|47|54)[0-9A-F]{4}'), 'snom870'),
         (re.compile('000413(70|77|7D)[0-9A-F]{4}'), 'snom720'),
-        (re.compile('000413(78|86|8B)[0-9A-F]{4}'), 'snom725'),
+        (re.compile('000413(78|86|8B|B7)[0-9A-F]{4}'), 'snom725'),
         (re.compile('000413(71|7B)[0-9A-F]{4}'), 'snom760'),
         (re.compile('00041394B4[0-1]{1}[0-9A-F]{1}|00041394B420'), 'snomD765'), # this must preceed the next rule: from 00041394B400 to 00041394B420 are D765
         (re.compile('00041394B[4-9A-E]{1}[0-9A-F]{1}|00041394BF0[0-3]'), 'snom715'), # 00041394B421 to 00041394BF03 are 715
@@ -183,8 +87,9 @@ macRegexList = [
         (re.compile('000413A3[0-9A-F]{4}'), 'snomD735'),
         (re.compile('000413A4[0-9A-F]{4}'), 'snomD335'),
         (re.compile('00041364[0-9A-F]{4}'), 'snomM200SC'),
-        (re.compile('00041392[0-9A-F]{4}'), 'snomD785'),
-        (re.compile('00041393[0-9A-F]{4}'), 'snomD385')
+        (re.compile('000413(92|96)[0-9A-F]{4}'), 'snomD785'),
+        (re.compile('00041393[0-9A-F]{4}'), 'snomD385'),
+        (re.compile('00041398[0-9A-F]{4}'), 'snomD765')
 ]
 
 models = list(set([ x[1] for x in macRegexList ]))
