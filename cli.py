@@ -60,7 +60,7 @@ macRegexList = [
         (re.compile('000413(26|2E|3A|3C|52)[0-9A-F]{4}'), 'snom370'),
         (re.compile('000413(30|56)[0-9A-F]{4}'), 'snomm9'),
         (re.compile('000413(32|55)[0-9A-F]{4}'), 'snomMP'),
-        (re.compile('00041361|63[0-9A-F]{4}|00087B(08|09|0B)[0-9A-F]{4}'), 'snomM700'),
+        (re.compile('000413(61|63)[0-9A-F]{4}|00087B(08|09|0B)[0-9A-F]{4}'), 'snomM700'),
         (re.compile('000413(62|B8)[0-9A-F]{4}|00087BD7[0-9A-F]{4}'), 'snomM300'),
         (re.compile('000413B6[0-9A-F]{4}'), 'snomM900'),
         (re.compile('000413(33|8D)[0-9A-F]{4}'), 'snomPA1'),
