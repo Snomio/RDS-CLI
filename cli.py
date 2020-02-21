@@ -70,17 +70,23 @@ macRegexList = [
         (re.compile('000413(70|77|7D)[0-9A-F]{4}'), 'snom720'),
         (re.compile('000413(78|86|8B|B7)[0-9A-F]{4}'), 'snom725'),
         (re.compile('000413(71|7B)[0-9A-F]{4}'), 'snom760'),
-        (re.compile('00041394B4[0-1]{1}[0-9A-F]{1}|00041394B420'), 'snomD765'), # this must preceed the next rule: from 00041394B400 to 00041394B420 are D765
-        (re.compile('00041394B[4-9A-E]{1}[0-9A-F]{1}|00041394BF0[0-3]'), 'snom715'), # 00041394B421 to 00041394BF03 are 715
-        (re.compile('000413790[0-9A-F]{3}|000413(90|94)[0-9A-F]{4}'), 'snomD765'), # In the 00041379xxxx range only 000413790000 to 000413790FFF is used for snomD765
-        (re.compile('000413(79|8C)[0-9A-F]{4}'), 'snomD745'), # This test must follow the test for snomD765, as 000413790xxx is D765, 000413791000 to 00041379FFFF is snomD745
+        # this must preceed the next rule: from 00041394B400 to 00041394B420 are D765
+        (re.compile('00041394B4[0-1]{1}[0-9A-F]{1}|00041394B420'), 'snomD765'),
+        # 00041394B421 to 00041394BF03 are 715
+        (re.compile('00041394B[4-9A-E]{1}[0-9A-F]{1}|00041394BF0[0-3]'), 'snom715'),
+        # In the 00041379xxxx range only 000413790000 to 000413790FFF is used for snomD765
+        (re.compile('000413790[0-9A-F]{3}|000413(90|94)[0-9A-F]{4}'), 'snomD765'),
+        # This test must follow the test for snomD765, as 000413790xxx is D765, 000413791000 to 00041379FFFF is snomD745
+        (re.compile('000413(79|8C)[0-9A-F]{4}'), 'snomD745'),
         (re.compile('000413(74|76|7A|7C|7E|89)[0-9A-F]{4}'), 'snom710'),
         (re.compile('000413(75|7F|87|8A|A5|B2)[0-9A-F]{4}'), 'snom715'),
         (re.compile('000413(88|A8)[0-9A-F]{4}'), 'snomD712'),
         (re.compile('000413(91|95)[0-9A-F]{4}'), 'snomD375'),
         (re.compile('000413(83|8E)[0-9A-F]{4}'), 'snomD305'),
-        (re.compile('00041384001[A-F6-9]|0004138400[2-6][0-9A-F]|0004138400[2-7][0-9]'), 'snomD305'), #the MACs of the range '000413840016' to '000413840079' are D305 devices, rest is D315
-        (re.compile('00041384[0-9A-F]{4}|0004138F[0-9A-F]{4}'), 'snomD315'), # this must follow the D305 regex
+        # the MACs of the range '000413840016' to '000413840079' are D305 devices, rest is D315
+        (re.compile('00041384001[A-F6-9]|0004138400[2-6][0-9A-F]|0004138400[2-7][0-9]'), 'snomD305'),
+        # this must follow the D305 regex
+        (re.compile('00041384[0-9A-F]{4}|0004138F[0-9A-F]{4}'), 'snomD315'),
         (re.compile('00041385[0-9A-F]{4}|000413A1[0-9A-F]{4}'), 'snomD345'),
         (re.compile('000413A6[0-9A-F]{4}'), 'snomD717'),
         (re.compile('00041382[0-9A-F]{4}'), 'snomD120'),
@@ -92,13 +98,15 @@ macRegexList = [
         (re.compile('00041398[0-9A-F]{4}'), 'snomD765')
 ]
 
-models = list(set([ x[1] for x in macRegexList ]))
+models = list(set([x[1] for x in macRegexList]))
 
 server = None
 
 local_vars = {}
 
+
 class HTTPSSafeAuth(SafeTransport):
+
     def __init__(self, user, password, *l, **kw):
         SafeTransport.__init__(self, *l, **kw)
         self.user = user
@@ -116,8 +124,8 @@ class HTTPSSafeAuth(SafeTransport):
         if request_body:
             connection.send(request_body)
 
-# Util
 
+# Util
 def make_rpc_conn(user, passwd):
     if "SNOM_DEBUG" in os.environ:
         debug = True
@@ -211,15 +219,15 @@ def load_defaults():
                 is_defaults = False
                 continue
             (name, value) = line.split("|", 1)
-            if is_defaults == False:
-                local_vars[name] = value.strip()
-            else:
+            if is_defaults:
                 defaults[name] = value.strip()
+            else:
+                local_vars[name] = value.strip()
         except Error:
             pass
 
-# Commands
 
+# Commands
 def validate_password(user, passwd):
     s = make_rpc_conn(user, passwd)
 
@@ -256,7 +264,7 @@ class RedirectionCli(cmd.Cmd):
 
     def _get_redirection_target(self, mac):
         redirection = server.redirect.getPhoneRedirection(mac)
-        if redirection[0] == True:
+        if redirection[0]:
             company = redirection[1] or ''
             target = redirection[2] or ''
             return " %s | %s " % (company.ljust(32), target.ljust(80))
@@ -289,7 +297,8 @@ class RedirectionCli(cmd.Cmd):
         """List phones configured in redirection service
             'list all' list all phones
             'list <phone_type>' list only phone matching <phone_type> (Eg. "list snom370")
-            'list <phone_type> <url>' list only phone matching thist <phone_type> and <url> (Eg. "list snom370 http://server.example.com/" )
+            'list <phone_type> <url>' list only phone matching thist <phone_type> and <url>
+            (Eg. "list snom370 http://server.example.com/" )
         """
         args = params.split()
         if len(args) >= 1:
@@ -323,7 +332,7 @@ class RedirectionCli(cmd.Cmd):
 
     # add command
     def do_add(self, params):
-        """Add phone in redirection service
+        """ Add phone in redirection service
             'add <mac> <url>' add redirection to <url> for mac address <mac> (Eg. "add 000413XXXXXX http://server.example.com")
             in case the <url> param is missing the default url value will be used (see the 'defaults' command)
         """
@@ -347,15 +356,17 @@ class RedirectionCli(cmd.Cmd):
             return
         result = server.redirect.registerPhone(args[0], args[1])
         if result[0]:
-            print("Redirection to %s for %s with MAC address %s has been successfully registered." % (args[1], get_type(args[0]), args[0]))
+            print("Redirection to %s for %s with MAC address %s has been successfully registered."
+                  % (args[1], get_type(args[0]), args[0]))
         else:
             print_error(result)
             return
 
     # update command
     def do_update(self, params):
-        """Update phones in redirection service
-            'update <mac> <url>' modify redirection to <url> for mac address <mac> (Eg. "add 000413XXXXXX http://server.example.com"'
+        """ Update phones in redirection service
+            'update <mac> <url>' modify redirection to <url> for mac address <mac>
+            (Eg. "add 000413XXXXXX http://server.example.com"'
         """
         args = params.split()
         if len(args) != 2:
@@ -368,7 +379,8 @@ class RedirectionCli(cmd.Cmd):
         server.redirect.deregisterPhone(args[0])
         result = server.redirect.registerPhone(args[0], args[1])
         if result[0]:
-            print("Redirection to %s for %s with MAC address %s has been successfully updated." % (args[1], get_type(args[0]), args[0]))
+            print("Redirection to %s for %s with MAC address %s has been successfully updated."
+                  % (args[1], get_type(args[0]), args[0]))
         else:
             print_error(result)
             return
@@ -405,7 +417,7 @@ class RedirectionCli(cmd.Cmd):
             if result[0]:
                 target = server.redirect.getPhoneRedirection(mac)
                 print("%s with MAC address %s is registered." % (get_type(mac), mac))
-                if target[0] == True:
+                if target[0]:
                     if target[1] != '':
                         print("\tMac is owned by %s" % target[1])
                     if target[2] != '':
@@ -418,6 +430,7 @@ class RedirectionCli(cmd.Cmd):
                 print_error(result)
         else:
             print("Wrong arguments. Use 'check MAC_Address'")
+
     # type command
     def do_type(self, params):
         """Get the devie type of a given mac address
@@ -429,8 +442,9 @@ class RedirectionCli(cmd.Cmd):
 
     # set command
     def do_set(self, params):
-        """Set a variable value
-            'set <var_name> <value>' set a variable <var_name> to value <value> (Eg. "set server http://my.server.example.com/provscript.php)"
+        """ Set a variable value
+            'set <var_name> <value>' set a variable <var_name> to value <value>
+            (Eg. "set server http://my.server.example.com/provscript.php)"
         """
         args = params.split()
         if len(args) == 2:
@@ -507,7 +521,7 @@ class RedirectionCli(cmd.Cmd):
         """Exits from the console"""
         return True
 
-    ## Command definitions to support Cmd object functionality ##
+    # Command definitions to support Cmd object functionality
     def do_EOF(self, args):
         """Exit on system end of file character"""
         return self.do_exit(args)
@@ -541,6 +555,7 @@ class RedirectionCli(cmd.Cmd):
                 continue
             ret.append(d)
         return ret
+
 
 # Main application loop
 if __name__ == "__main__":
