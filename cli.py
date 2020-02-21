@@ -4,7 +4,7 @@
 # -*- Mode: Python -*-
 
 import cmd
-import rlcompleter
+import rlcompleter # noqa F401
 try:
     import readline
     if 'libedit' in readline.__doc__:
@@ -22,7 +22,7 @@ try:
     import http.client as HttpClient
 except ImportError:  # Python 2 fallback
     from xmlrpclib import SafeTransport, ServerProxy, Error
-    import httplib as HttpClient
+    import httplib as HttpClient # noqa F401
 
 import os.path
 import sys
